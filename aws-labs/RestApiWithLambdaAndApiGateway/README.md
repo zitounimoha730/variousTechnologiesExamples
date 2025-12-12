@@ -46,15 +46,15 @@ sam deploy --guided
 
 When prompted, use these settings:
 
-Stack Name: task-api-basic
-Accept defaults for region
-Confirm changes: N
-Allow IAM role creation: Y
-Disable rollback: N
-TaskFunction has no authentication. Is this okay?: Y
-Save arguments to configuration file: Y
-Accept defaults for SAM configuration file: Press Enter to accept the defult
-Accept defaults for SAM configuration environment: Press Enter to accept the defult
+Stack Name: task-api-basic<br>
+Accept defaults for region<br>
+Confirm changes: N<br>
+Allow IAM role creation: Y<br>
+Disable rollback: N<br>
+TaskFunction has no authentication. Is this okay?: Y<br>
+Save arguments to configuration file: Y<br>
+Accept defaults for SAM configuration file: Press Enter to accept the defult<br>
+Accept defaults for SAM configuration environment: Press Enter to accept the defult<br>
 You may see repeated questions about TaskFunction has no authentication. Is this okay? - answer Y to all of them. This happens because SAM checks each API endpoint individually.
 
 To test the API, first get your API URL:
@@ -112,18 +112,18 @@ sam deploy --guided \
 
 When prompted, use these settings:
 
-Stack Name: task-api-dev
-Accept defaults for region
-Parameter environment: dev
-Parameter API stagename: v1
-Confirm changes: N
-Allow IAM role creation: Y
-Disable rollback: N
-TaskFunction has no authentication. Is this okay?: Y
-Save arguments to configuration file: Y
-Accept defaults for SAM configuration file: Press Enter to accept the defult
-Accept defaults for SAM configuration environment: Press Enter to accept the defult
-You may see repeated questions about TaskFunction has no authentication. Is this okay? - answer Y to all of them. This happens because SAM checks each API endpoint individually.
+Stack Name: task-api-dev<br>
+Accept defaults for region<br>
+Parameter environment: dev<br>
+Parameter API stagename: v1<br>
+Confirm changes: N<br>
+Allow IAM role creation: Y<br>
+Disable rollback: N<br>
+TaskFunction has no authentication. Is this okay?: Y<br>
+Save arguments to configuration file: Y<br>
+Accept defaults for SAM configuration file: Press Enter to accept the defult<br>
+Accept defaults for SAM configuration environment: Press Enter to accept the defult<br>
+You may see repeated questions about TaskFunction has no authentication. Is this okay? - answer Y to all of them. This happens because SAM checks each API endpoint individually.<br>
 
 Deploy separate staging environment:
 ```
@@ -210,18 +210,18 @@ sam deploy --guided \
 
 When prompted, use these settings:
 
-Stack Name: task-api-dev
-Accept defaults for region
-Parameter environment: dev
-Parameter API stagename: v1
-Confirm changes: N
-Allow IAM role creation: Y
-Disable rollback: N
-TaskFunction has no authentication. Is this okay?: Y
-Save arguments to configuration file: Y
-Accept defaults for SAM configuration file: Press Enter to accept the defult
-Accept defaults for SAM configuration environment: Press Enter to accept the defult
-You may see repeated questions about TaskFunction has no authentication. Is this okay? - answer Y to all of them. This happens because SAM checks each API endpoint individually.
+Stack Name: task-api-dev<br>
+Accept defaults for region<br>
+Parameter environment: dev<br>
+Parameter API stagename: v1<br>
+Confirm changes: N<br>
+Allow IAM role creation: Y<br>
+Disable rollback: N<br>
+TaskFunction has no authentication. Is this okay?: Y<br>
+Save arguments to configuration file: Y<br>
+Accept defaults for SAM configuration file: Press Enter to accept the defult<br>
+Accept defaults for SAM configuration environment: Press Enter to accept the defult<br>
+You may see repeated questions about TaskFunction has no authentication. Is this <br>okay? - answer Y to all of them. This happens because SAM checks each API endpoint individually.
 
 Update other environments
 ```
