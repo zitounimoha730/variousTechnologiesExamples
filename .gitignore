@@ -33,3 +33,5 @@ demo-angular/.firebase/*
 demo-angular/.firebase/*.log
 demo-angular/.firebase/*.json
 demo-angular/.firebase/functions/node_modules
+
+aws-labs/RestApiWithLambdaAndApiGateway/.DS_Store
