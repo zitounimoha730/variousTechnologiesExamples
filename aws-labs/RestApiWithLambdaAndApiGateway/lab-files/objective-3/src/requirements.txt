@@ -1,0 +1,2 @@
+# boto3 is included in Lambda runtime by default
+# No additional dependencies needed for this example

@@ -1,0 +1,2 @@
+# No external dependencies needed for this basic example
+# Python standard library modules (json, uuid, datetime) are included by default

@@ -1,0 +1,134 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Error Handling and Reliability with DLQ
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, staging, prod]
+    Description: Environment name
+  
+  ApiStageName:
+    Type: String
+    Default: v1
+    Description: API Gateway stage name
+
+# =============================================================================
+# DEAD-LETTER QUEUES: Global DLQ configuration for all Lambda functions
+# =============================================================================
+Globals:
+  Function:
+    Timeout: 10
+    MemorySize: 128
+    Runtime: python3.12
+    Environment:
+      Variables:
+        ENVIRONMENT: !Ref Environment
+        API_STAGE: !Ref ApiStageName
+        DLQ_URL: !Ref TaskDLQ
+    # Configure Dead Letter Queue for failed Lambda executions
+    DeadLetterQueue:
+      Type: SQS
+      TargetArn: !GetAtt TaskDLQ.Arn
+
+Resources:
+  # =============================================================================
+  # DEAD-LETTER QUEUES: SQS queue to capture failed Lambda executions
+  # =============================================================================
+  TaskDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub "${Environment}-task-api-dlq"
+
+  # API Gateway with regional endpoint configuration (from Objective 2)
+  TaskApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref ApiStageName
+      EndpointConfiguration:
+        Type: REGIONAL
+      Cors:
+        AllowMethods: "'GET,POST,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
+
+  # Lambda Function with DLQ integration
+  TaskFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: app.lambda_handler
+      Environment:
+        Variables:
+          ENVIRONMENT: !Ref Environment
+          API_STAGE: !Ref ApiStageName
+          LOG_LEVEL: !If [IsProd, ERROR, DEBUG]
+          DLQ_URL: !Ref TaskDLQ
+      
+      # =============================================================================
+      # ERROR HANDLING AND RETRIES: API endpoints for testing error scenarios
+      # =============================================================================
+      Events:
+        # Health check endpoint for monitoring (from Objective 2)
+        HealthCheck:
+          Type: Api
+          Properties:
+            RestApiId: !Ref TaskApi
+            Path: /health
+            Method: get
+        
+        # List all tasks (from Objective 2)
+        GetTasks:
+          Type: Api
+          Properties:
+            RestApiId: !Ref TaskApi
+            Path: /tasks
+            Method: get
+        
+        # Create a new task (from Objective 2)
+        CreateTask:
+          Type: Api
+          Properties:
+            RestApiId: !Ref TaskApi
+            Path: /tasks
+            Method: post
+        
+        # Test error handling endpoint - triggers DLQ scenarios (NEW in Objective 3)
+        TestError:
+          Type: Api
+          Properties:
+            RestApiId: !Ref TaskApi
+            Path: /test/error
+            Method: post
+
+Conditions:
+  IsProd: !Equals [!Ref Environment, prod]
+
+Outputs:
+  TaskApiUrl:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${TaskApi}.execute-api.${AWS::Region}.amazonaws.com/${ApiStageName}"
+    Export:
+      Name: !Sub "${Environment}-TaskApiUrl"
+  
+  TaskApiId:
+    Description: "API Gateway ID"
+    Value: !Ref TaskApi
+    Export:
+      Name: !Sub "${Environment}-TaskApiId"
+  
+  # =============================================================================
+  # ERROR HANDLING AND RETRIES: DLQ URL for monitoring failed executions
+  # =============================================================================
+  TaskDLQUrl:
+    Description: "Dead Letter Queue URL"
+    Value: !Ref TaskDLQ
+    Export:
+      Name: !Sub "${Environment}-TaskDLQUrl"
+  
+  Environment:
+    Description: "Environment name"
+    Value: !Ref Environment
+    Export:
+      Name: !Sub "${Environment}-Environment"

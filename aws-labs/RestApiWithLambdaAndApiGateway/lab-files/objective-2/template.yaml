@@ -1,0 +1,112 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Objective 2 - Advanced API Gateway Features with Staging
+
+# =============================================================================
+# STAGING ENVIRONMENTS: Parameters allow same template for dev/staging/prod
+# =============================================================================
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, staging, prod]
+    Description: Environment name
+  
+  ApiStageName:
+    Type: String
+    Default: v1
+    Description: API Gateway stage name
+
+# =============================================================================
+# CUSTOM RESPONSE HANDLING: Environment variables enable custom responses
+# =============================================================================
+Globals:
+  Function:
+    Timeout: 10
+    MemorySize: 128
+    Runtime: python3.12
+    Environment:
+      Variables:
+        ENVIRONMENT: !Ref Environment
+        API_STAGE: !Ref ApiStageName
+
+Resources:
+  # API Gateway with regional endpoint configuration
+  TaskApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref ApiStageName
+      EndpointConfiguration:
+        Type: REGIONAL
+      Cors:
+        AllowMethods: "'GET,POST,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
+
+  # Lambda Function with environment-aware configuration
+  TaskFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: app.lambda_handler
+      Environment:
+        Variables:
+          ENVIRONMENT: !Ref Environment
+          API_STAGE: !Ref ApiStageName
+          LOG_LEVEL: !If [IsProd, ERROR, DEBUG]
+      
+      # =============================================================================
+      # API GATEWAY ROUTES: Define all API endpoints and their HTTP methods
+      # =============================================================================
+      Events:
+        # Health check endpoint for monitoring
+        HealthCheck:
+          Type: Api
+          Properties:
+            RestApiId: !Ref TaskApi
+            Path: /health
+            Method: get
+        
+        # List all tasks
+        GetTasks:
+          Type: Api
+          Properties:
+            RestApiId: !Ref TaskApi
+            Path: /tasks
+            Method: get
+        
+        # Create a new task
+        CreateTask:
+          Type: Api
+          Properties:
+            RestApiId: !Ref TaskApi
+            Path: /tasks
+            Method: post
+
+# =============================================================================
+# STAGING ENVIRONMENTS: Conditional logic for environment-specific settings
+# =============================================================================
+Conditions:
+  IsProd: !Equals [!Ref Environment, prod]
+
+# =============================================================================
+# STAGING ENVIRONMENTS: Environment-specific outputs for each deployment
+# =============================================================================
+Outputs:
+  TaskApiUrl:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${TaskApi}.execute-api.${AWS::Region}.amazonaws.com/${ApiStageName}"
+    Export:
+      Name: !Sub "${Environment}-TaskApiUrl"
+  
+  TaskApiId:
+    Description: "API Gateway ID"
+    Value: !Ref TaskApi
+    Export:
+      Name: !Sub "${Environment}-TaskApiId"
+  
+  Environment:
+    Description: "Environment name"
+    Value: !Ref Environment
+    Export:
+      Name: !Sub "${Environment}-Environment"

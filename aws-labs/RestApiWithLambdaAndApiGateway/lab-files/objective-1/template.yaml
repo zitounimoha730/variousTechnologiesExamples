@@ -1,0 +1,78 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Basic Task Management API
+
+# =============================================================================
+# SAM CLI DEPLOYMENT: Global settings applied to all Lambda functions
+# =============================================================================
+Globals:
+  Function:
+    Timeout: 10
+    MemorySize: 128
+    Runtime: python3.12
+
+Resources:
+  # =============================================================================
+  # DEFINING API RESOURCES: API Gateway configuration
+  # =============================================================================
+  TaskApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: dev
+      Cors:
+        AllowMethods: "'GET,POST,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
+
+  # =============================================================================
+  # DEFINING FUNCTIONS: Lambda function with API event triggers
+  # =============================================================================
+  TaskFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: app.lambda_handler
+      
+      # =============================================================================
+      # DEFINING API RESOURCES: API endpoints that trigger Lambda function
+      # =============================================================================
+      Events:
+        # List all tasks
+        GetTasks:
+          Type: Api
+          Properties:
+            RestApiId: !Ref TaskApi
+            Path: /tasks
+            Method: get
+        
+        # Create a new task
+        CreateTask:
+          Type: Api
+          Properties:
+            RestApiId: !Ref TaskApi
+            Path: /tasks
+            Method: post
+        
+        # Get a specific task
+        GetTask:
+          Type: Api
+          Properties:
+            RestApiId: !Ref TaskApi
+            Path: /tasks/{id}
+            Method: get
+
+# =============================================================================
+# VALIDATE DEPLOYMENT: Outputs to verify successful deployment
+# =============================================================================
+Outputs:
+  TaskApiUrl:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${TaskApi}.execute-api.${AWS::Region}.amazonaws.com/dev"
+    Export:
+      Name: TaskApiUrl
+  
+  TaskFunctionArn:
+    Description: "Task Lambda Function ARN"
+    Value: !GetAtt TaskFunction.Arn
+    Export:
+      Name: TaskFunctionArn
