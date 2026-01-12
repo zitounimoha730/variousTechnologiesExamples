@@ -69,4 +69,36 @@ GROUP    TOPIC           PARTITION  CURRENT-OFFSET  LOG-END-OFFSET  LAG  CONSUME
 ## Kafka Java client example
 ```
 $ cd modules/module4/demo2
+$ kafka-topics.bat --create --bootstrap-server 127.0.0.1:9092 --replication-factor 3 --partitions 3 --topic myorders
+
+$ kafka-console-consumer.bat `
+    --bootstrap-server 127.0.0.1:9092 `
+    --topic myorders `
+    --from-beginning `
+    --key-deserializer org.apache.kafka.common.serialization.StringDeserializer `
+    --value-deserializer org.apache.kafka.common.serialization.DoubleDeserializer `
+    --property print.key=true `
+    --property key-separator=, `
+    --group 1
+
+TX      1532.0
+CA      2634.0
+HI      5373.0
+WY      6877.0
+OK      1935.0
+CA      4348.0
+...
+
+$ mvn clean install
+$ java -jar ./kafka-client-1.0-SNAPSHOT.jar
+...
+NH
+2313.0
+myorders-1@72
+[main] INFO com.globomantics.Main - Sending message with key TN to Kafka
+TN
+9862.0
+myorders-1@73
+[main] INFO com.globomantics.Main - Sending message with key TN to Kafka
+...
 ```
