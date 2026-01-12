@@ -33,8 +33,9 @@ We can now drop a broker and see what's happining:
 $ docker stop broker-3
 ```
 
-## Demo: module4/demo1
+## Kafka Groups and use of message key:value
 ```
+$ cd demos/module4/demo1
 $ docker-compose up -d
 $ kafka-topics.bat --create --bootstrap-server 127.0.0.1:9092 --replication-factor 3 --partitions 3 --topic myorders
 
@@ -63,4 +64,9 @@ GROUP    TOPIC           PARTITION  CURRENT-OFFSET  LOG-END-OFFSET  LAG  CONSUME
 1        myorders        0          0               0               0     <id1>      /172.19.0.1     console-consumer 
 1        myorders        2          3               3               0     <id2>      /172.19.0.1     console-consumer
 
+```
+
+## Kafka Java client example
+```
+$ cd modules/module4/demo2
 ```
