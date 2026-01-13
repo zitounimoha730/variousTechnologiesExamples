@@ -33,3 +33,8 @@ demo-angular/.firebase/*
 demo-angular/.firebase/*.log
 demo-angular/.firebase/*.json
 demo-angular/.firebase/functions/node_modules
+.idea
+.vscode
+logs
+.log
+.DS_Store
