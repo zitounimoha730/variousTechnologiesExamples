@@ -138,7 +138,7 @@ $ kafka-console-consumer.bat `
     --property key-separator=, `
     --group 2
 
-kafka-console-consumer.bat `
+$ kafka-console-consumer.bat `
     --bootstrap-server 127.0.0.1:9092 `
     --topic myorders `
     --from-beginning `
@@ -147,6 +147,9 @@ kafka-console-consumer.bat `
     --property print.key=true `
     --property key-separator=, `
     --group 1
+
+$ mvn clean install
+$ run maven project to send messages from producer
 ```
 
 ```
