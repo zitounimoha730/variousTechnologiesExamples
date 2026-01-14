@@ -245,3 +245,43 @@ GROUP           TOPIC           PARTITION  CURRENT-OFFSET  LOG-END-OFFSET  LAG  
 1consumer       myorders        3          35              35              0               consumer-id2 /172.19.0.1     consumer-1consumer-1
 1consumer       myorders        2          36              36              0               consumer-id3 /172.19.0.1     consumer-1consumer-1
 ```
+
+## Standalone Kafka Connector
+### Module 6 : demo 1
+Kafka cluster:
+* 3 brokers 
+* 3 zookeepers
+
+Topic: connectlog
+- 4 partitions
+- 2 replications
+```
+$ cd demos/module6/demo1
+$ docker-compose up -d
+$ curl 'http://localhost:8082/brokers'
+{"brokers": [1,2,3]}
+
+$ kafka-topics.bat --create --bootstrap-server 127.0.0.1:9092 --replication-factor 2 --partitions 4 --topic connectlog
+
+```
+
+Start the standalone connector
+```
+$ connect-standalone.bat worker.properties filesink.properties
+```
+
+Start the java client producer
+```
+# Run the java class LogProducer from IntelliJ IDE
+```
+
+Check generated log file: file-log.txt
+```
+cat file-log.txt
+Some logging info from Kafka with key45.0
+Some logging info from Kafka with key48.0
+Some logging info from Kafka with key28.0
+Some logging info from Kafka with key47.0
+Some logging info from Kafka with key28.0
+....
+```
