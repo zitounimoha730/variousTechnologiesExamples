@@ -285,3 +285,28 @@ Some logging info from Kafka with key47.0
 Some logging info from Kafka with key28.0
 ....
 ```
+
+## Kafka distributed connector
+### Module 6 : demo 2
+
+```
+$ cd demos/module6/demo2
+$ docker-compose up -d
+```
+
+```
+$ confluent-hub install confluentinc/kafka-connect-avro-converter:7.5.0 --component-dir C:/tools/kafka_2.13-4.1.1/libs --worker-configs worker.properties
+$ confluent-hub install mongodb/kafka-connect-mongodb:1.11.0 --component-dir C:/tools/kafka_2.13-4.1.1/libs --worker-configs worker.properties
+```
+
+Create topic: connect-distributed
+```
+$ kafka-topics.bat --create --bootstrap-server 127.0.0.1:9092 --replication-factor 2 --partitions 4 --topic connect-distributed
+```
+
+Create topics for distributed kafka connect
+```
+$ kafka-topics.bat --create --bootstrap-server 127.0.0.1:9092 --topic kafka_connect_statues --config cleanup.policy=compact
+$ kafka-topics.bat --create --bootstrap-server 127.0.0.1:9092 --topic kafka_connect_configs --config cleanup.policy=compact
+$ kafka-topics.bat --create --bootstrap-server 127.0.0.1:9092 --topic kafka_connect_offsets --config cleanup.policy=compact
+```
