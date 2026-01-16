@@ -294,19 +294,149 @@ $ cd demos/module6/demo2
 $ docker-compose up -d
 ```
 
+### First solution: Install directly a kafka connect on your machine
+This is not working on windows => abandonate
+
+### Second Solution: Using docker-compose service for kafka connect
+#### 1. Add Kafka connect service to docker-compose.yml file
+
+#### 2. Install needed libs into kafka connect container
 ```
-$ confluent-hub install confluentinc/kafka-connect-avro-converter:7.5.0 --component-dir C:/tools/kafka_2.13-4.1.1/libs --worker-configs worker.properties
-$ confluent-hub install mongodb/kafka-connect-mongodb:1.11.0 --component-dir C:/tools/kafka_2.13-4.1.1/libs --worker-configs worker.properties
+$ docker exec -it kafka-connect confluent-hub install confluentinc/kafka-connect-avro-converter:7.5.0
+$ docker exec -it kafka-connect confluent-hub install mongodb/kafka-connect-mongodb:1.11.0 
+# $ docker exec -it kafka-connect confluent-hub install mongodb/kafka-connect-mongodb:latest
+
+# Restart kafka-connect service
+$ docker-compose restart kafka-connect
+
+# Check installed libs
+$ curl http://localhost:8083/connector-plugins
+[
+  {
+    "class": "com.mongodb.kafka.connect.MongoSinkConnector",
+    "type": "sink",
+    "version": "1.11.0"
+  },
+  {
+    "class": "com.mongodb.kafka.connect.MongoSourceConnector",
+    "type": "source",
+    "version": "1.11.0"
+  },
+  {
+    "class": "org.apache.kafka.connect.mirror.MirrorCheckpointConnector",
+    "type": "source",
+    "version": "7.4.1-ccs"
+  },
+  {
+    "class": "org.apache.kafka.connect.mirror.MirrorHeartbeatConnector",
+    "type": "source",
+    "version": "7.4.1-ccs"
+  },
+  {
+    "class": "org.apache.kafka.connect.mirror.MirrorSourceConnector",
+    "type": "source",
+    "version": "7.4.1-ccs"
+  }
+]
+
 ```
 
-Create topic: connect-distributed
+#### 3. Create topic: connect-distributed
 ```
 $ kafka-topics.bat --create --bootstrap-server 127.0.0.1:9092 --replication-factor 2 --partitions 4 --topic connect-distributed
 ```
 
-Create topics for distributed kafka connect
+#### 4. Create a connector for mango db
+It will be better to use Postman
 ```
-$ kafka-topics.bat --create --bootstrap-server 127.0.0.1:9092 --topic kafka_connect_statues --config cleanup.policy=compact
-$ kafka-topics.bat --create --bootstrap-server 127.0.0.1:9092 --topic kafka_connect_configs --config cleanup.policy=compact
-$ kafka-topics.bat --create --bootstrap-server 127.0.0.1:9092 --topic kafka_connect_offsets --config cleanup.policy=compact
+curl -X POST http://localhost:8083/connectors -H "Content-Type: application/json" -d '{
+    "name": "mongo-sink",
+    "config": {
+      "connector.class": "com.mongodb.kafka.connect.MongoSinkConnector",
+      "tasks.max": "1",
+      "topics": "connect-distributed",
+      "connection.uri": "mongodb://mongo:27017",
+      "database": "quickstart",
+      "collection": "topicData"
+    }
+  }'
+
+# If it does not worked use this:
+curl -X POST http://localhost:8083/connectors -H "Content-Type: application/json" -d '{
+    "name": "mongo-sink",
+    "config": {
+      "connector.class": "com.mongodb.kafka.connect.MongoSinkConnector",
+      "tasks.max": "1",
+      "topics": "connect-distributed",
+      "connection.uri": "mongodb://mongo:27017",
+      "database": "quickstart",
+      "collection": "topicData",
+      "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+      "value.converter": "io.confluent.connect.avro.AvroConverter",
+      "value.converter.schemas.enable": "false",
+	  "value.converter.schema.registry.url": "http://schema-registry:8081"
+    }
+  }'
+
+# Display created connector
+$ curl http://localhost:8083/connectors
+['mongo-sink']
+
+# We can delete it by name if we want
+$ curl -X DELETE http://localhost:8083/connectors/mongo-sink
+
+# check connector status
+$ curl http://localhost:8083/connectors/mongo-sink/status
+```
+
+#### 5. Run Java Kafka Producer
+
+```
+# Open project with IntelliJ
+# Generate resources
+$ mvn generate-sources
+
+# Run class AlbumSender.java
+```
+
+#### 6. Connect to mongo to check exported data
+```
+$ docker exec -it mongo mongosh
+
+test> show dbs
+admin       40.00 KiB
+config      92.00 KiB
+local       40.00 KiB
+quickstart   8.00 KiB
+
+test> use quickstart
+switched to db quickstart
+quickstart> db.topicData.find()
+[
+  {
+    _id: ObjectId('696a33d88bc3952fc2520a90'),
+    name: 'Use Your Illusion',
+    year: 1991
+  },
+  {
+    _id: ObjectId('696a33d88bc3952fc2520a91'),
+    name: 'Use Your Illusion',
+    year: 1991
+  },
+  {
+    _id: ObjectId('696a33d88bc3952fc2520a92'),
+    name: 'Use Your Illusion',
+    year: 1991
+  },
+  {
+    _id: ObjectId('696a33d88bc3952fc2520a93'),
+    name: 'Use Your Illusion',
+    year: 1991
+  },
+  {
+    _id: ObjectId('696a33e68bc3952fc2520a94'),
+    name: 'Use Your Illusion',
+    year: 1991
+  }
+]
 ```
