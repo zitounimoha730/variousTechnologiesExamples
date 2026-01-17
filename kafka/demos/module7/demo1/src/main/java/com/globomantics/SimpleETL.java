@@ -23,7 +23,7 @@ public class SimpleETL {
 		StreamsBuilder builder = new StreamsBuilder();
 		KStream<String, Integer> rawReadings = builder.stream("RawTempReadings");
 		KStream<String, Integer> validatedReadings = rawReadings
-				.filter((key, value) -> value > -50 && value < 130);
+				.filter((key, value) -> value > -20 && value < 130);
 		validatedReadings.to("ValidatedTempReadings");
 		
 		Topology topo = builder.build();

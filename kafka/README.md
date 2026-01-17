@@ -34,6 +34,7 @@ $ docker stop broker-3
 ```
 
 ## Kafka Groups and use of message key:value
+### Module 4 : demo 1
 ```
 $ cd demos/module4/demo1
 $ docker-compose up -d
@@ -67,6 +68,7 @@ GROUP    TOPIC           PARTITION  CURRENT-OFFSET  LOG-END-OFFSET  LAG  CONSUME
 ```
 
 ## Kafka Java client example
+### Module 4 : demo 2
 ```
 $ cd modules/module4/demo2
 $ kafka-topics.bat --create --bootstrap-server 127.0.0.1:9092 --replication-factor 3 --partitions 3 --topic myorders
@@ -439,4 +441,175 @@ quickstart> db.topicData.find()
     year: 1991
   }
 ]
+```
+
+## Kafka Streams
+### Creating a Kafka Streams Application - Module 7 : demo 1
+#### 1. create kafka cluster
+```
+$ cd demos/module7/demo1
+$ docker-compose up -d
+```
+
+#### 2. create topics
+```
+$ kafka-topics.bat --create --bootstrap-server 127.0.0.1:9092 --partitions 4 --topic RawTempReadings
+$ kafka-topics.bat --create --bootstrap-server 127.0.0.1:9092 --partitions 4 --topic ValidatedTempReadings
+```
+
+#### 3. Create console consumer
+```
+$ kafka-console-consumer.bat `
+    --bootstrap-server 127.0.0.1:9092 `
+    --topic ValidatedTempReadings `
+    --from-beginning `
+    --key-deserializer org.apache.kafka.common.serialization.StringDeserializer `
+    --value-deserializer org.apache.kafka.common.serialization.IntegerDeserializer `
+    --property print.key=true `
+    --property key-separator=, `
+    --group 1
+
+```
+
+#### 4. Start App Stream & Producer
+```
+# Open project using IntellIj
+# Start The Stream class: SimpleETL
+# Start The producer class: Producer
+```
+
+Result: we are filtering tempiratures between -20 and 130 degree
+```
+# Our consumer on ValidatedTempReadings topic stats to receive these messages:
+sensor_3        125
+sensor_1        108
+sensor_2        126
+sensor_3        103
+sensor_1        104
+sensor_1        33
+sensor_1        79
+sensor_2        -19
+sensor_1        -11
+sensor_1        57
+.....
+```
+
+### Quering a Stream with ksql part1 - Module 7 : demo 2
+#### 1. create kafka cluster
+```
+$ cd demos/module7/demo2
+$ docker-compose up -d
+```
+
+#### 2. connect to ksqldb command line interface
+```
+$ docker exec -it ksqldb-cli ksql http://ksqldb-server:8088
+
+ksql> show all topics;
+
+ Kafka Topic                            | Partitions | Partition Replicas
+----------------------------------------------------------
+ _confluent-ksql-default__command_topic | 1          | 1
+ _schemas                               | 1          | 3
+ default_ksql_processing_log            | 1          | 1
+----------------------------------------------------------
+
+```
+
+#### 3. Configure ksql reading offset
+We are going to see all of the changes of all topics from the biginning.
+```
+ksql> SET 'auto.offset.reset'='earliest';
+Successfully changed local property 'auto.offset.reset' to 'earliest'. Use the UNSET command to revert your change.
+```
+
+#### 4. Create a stream
+```
+ksql> CREATE STREAM tempReadings (zipcode VARCHAR, sensortime BIGINT, temp DOUBLE) WITH (kafka_topic='readings', timestamp='sensortime', value_format='json', partitions=1);
+ Message
+----------------
+ Stream created
+----------------
+
+ksql> show topics extended;
+
+ Kafka Topic                 | Partitions | Partition Replicas | Consumers | ConsumerGroups
+--------------------
+ default_ksql_processing_log | 1          | 1                  | 0         | 0
+ readings                    | 1          | 1                  | 0         | 0
+--------------------
+
+ksql> show streams extended;
+Name                 : TEMPREADINGS
+Type                 : STREAM
+Timestamp field      : SENSORTIME
+Key format           : KAFKA
+Value format         : JSON
+Kafka topic          : readings (partitions: 1, replication: 1)
+...
+ Field      | Type
+------------------------------                                                                      &
+ ZIPCODE    | VARCHAR(STRING)
+ SENSORTIME | BIGINT
+ TEMP       | DOUBLE
+------------------------------
+...
+```
+
+#### 5. insert data to the Stream
+```
+ksql> INSERT INTO tempReadings (zipcode, sensortime, temp) VALUES ('1234', UNIX_TIMESTAMP(), 100);
+ksql> INSERT INTO tempReadings (zipcode, sensortime, temp) VALUES ('4321', UNIX_TIMESTAMP(), 90);
+ksql> INSERT INTO tempReadings (zipcode, sensortime, temp) VALUES ('4321', UNIX_TIMESTAMP() + 60 * 60 * 1000, 80);
+ksql> INSERT INTO tempReadings (zipcode, sensortime, temp) VALUES ('4321', UNIX_TIMESTAMP() + 30 * 60 * 1000, 80);
+ksql> INSERT INTO tempReadings (zipcode, sensortime, temp) VALUES ('4321', UNIX_TIMESTAMP() + 2 * 60 * 60 * 1000, 70);
+```
+
+#### 6. Use ksql to query the Stream
+```
+ksql> SELECT zipcode, TIMESTAMPTOSTRING(WINDOWSTART, 'HH:mm:ss') as windowtime, 
+COUNT(*) AS rowcount, AVG(temp) as tempAvg 
+FROM tempReadings
+WINDOW TUMBLING (SIZE 1 HOURS)
+GROUP BY zipcode EMIT CHANGES;
+
++-----------------------------+-----------------------------+-----------------------------+-----------------------------+
+|ZIPCODE                              |WINDOWTIME                           |ROWCOUNT                         |TEMPAVG
++-----------------------------+-----------------------------+-----------------------------+-----------------------------+
+|1234                                 |17:00:00                             |1                                |100.0
+|4321                                 |18:00:00                             |1                                |80.0 
+|4321                                 |19:00:00                             |1                                |70.0   
+|4321                                 |17:00:00                             |2                                |85.0 
+
+```
+
+#### 7. Consuming directly from topic used by the Stream
+```
+$ kafka-console-consumer.bat --bootstrap-server 127.0.0.1:9092 --topic readings --from-beginning
+{"ZIPCODE":"1234","SENSORTIME":1768635270096,"TEMP":100.0}
+{"ZIPCODE":"4321","SENSORTIME":1768635277748,"TEMP":90.0}
+{"ZIPCODE":"4321","SENSORTIME":1768638891431,"TEMP":80.0}
+{"ZIPCODE":"4321","SENSORTIME":1768637105743,"TEMP":80.0}
+{"ZIPCODE":"4321","SENSORTIME":1768642514844,"TEMP":70.0}
+```
+
+#### 8. Creating a table from the Stream
+Tables don't alive. They are just queries (like views in sql).
+```
+ksql> CREATE TABLE highsandlows WITH (kafka_topic='readings') AS 
+SELECT MIN(temp) as min_temp, MAX(temp) as max_temp, zipcode
+FROM tempReadings GROUP BY zipcode;
+
+ Message
+-------------------------------------------
+ Created query with ID CTAS_HIGHSANDLOWS_3
+-------------------------------------------
+
+ksql> SELECT min_temp, max_temp
+>FROM highsandlows WHERE zipcode='4321';
++--------------------+--------------------+
+|MIN_TEMP             |MAX_TEMP            
++--------------------+--------------------+
+|70.0                 |90.0             
+
 ```

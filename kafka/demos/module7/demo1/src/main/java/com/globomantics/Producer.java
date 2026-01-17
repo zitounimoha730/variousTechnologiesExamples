@@ -26,7 +26,7 @@ public class Producer {
 		while (true) {
 			int idx = new Random().nextInt(sensors.length);
 			String key = (sensors[idx]);
-			int value = ThreadLocalRandom.current().nextInt(-20, 180 + 1);
+			int value = ThreadLocalRandom.current().nextInt(-50, 180 + 1);
 			ProducerRecord<String, Integer> producerRecord =
 					new ProducerRecord<>("RawTempReadings", key, value);
 
