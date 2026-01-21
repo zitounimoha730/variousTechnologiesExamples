@@ -1,0 +1,9 @@
+/Users/bogdan/pluralsight/user-tracking-producer/src/main/java/com/pluralsight/kafka/producer/model/Event.java
+/Users/bogdan/pluralsight/user-tracking-producer/src/main/java/com/pluralsight/kafka/producer/enums/ProductType.java
+/Users/bogdan/pluralsight/user-tracking-producer/src/main/java/com/pluralsight/kafka/producer/enums/Color.java
+/Users/bogdan/pluralsight/user-tracking-producer/src/main/java/com/pluralsight/kafka/producer/model/User.java
+/Users/bogdan/pluralsight/user-tracking-producer/src/main/java/com/pluralsight/kafka/producer/model/Product.java
+/Users/bogdan/pluralsight/user-tracking-producer/src/main/java/com/pluralsight/kafka/producer/enums/UserId.java
+/Users/bogdan/pluralsight/user-tracking-producer/src/main/java/com/pluralsight/kafka/producer/Main.java
+/Users/bogdan/pluralsight/user-tracking-producer/src/main/java/com/pluralsight/kafka/producer/EventGenerator.java
+/Users/bogdan/pluralsight/user-tracking-producer/src/main/java/com/pluralsight/kafka/producer/enums/DesignType.java

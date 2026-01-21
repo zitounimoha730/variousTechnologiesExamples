@@ -1,0 +1,20 @@
+curl -X POST   \
+http://localhost:8082/topics/designs   \
+-H 'Content-Type: application/vnd.kafka.json.v2+json' \
+-d '{
+  "records": [
+    
+      "key": "design1",
+      "value": {
+	"color": "blue", 
+	"image ":"car"
+	}
+    },
+    
+      "key": "design2",
+      "value": {
+	"color": "red", 
+	"image ":"suitcase"
+    }
+}' | json_pp
+

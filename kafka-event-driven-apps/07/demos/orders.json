@@ -1,0 +1,29 @@
+{
+  "schema": {
+    "type": "struct",
+    "fields": [
+      {
+        "type": "int64",
+        "optional": false,
+        "field": "nb_items"
+      },
+      {
+        "type": "int64",
+        "optional": false,
+        "field": "total_amount"
+      },
+      {
+        "type": "string",
+        "optional": false,
+        "field": "user_id"
+      }
+    ],
+    "optional": false,
+    "name": "orders"
+  },
+  "payload": {
+    "nb_items": 2,
+    "total_amount": 140,
+    "user_id": "ABC123"
+  }
+}

@@ -1,0 +1,3 @@
+curl -X GET   \
+http://localhost:8082/consumers/designs-consumer-group/instances/consumer-1/records  \
+-H 'Accept: application/vnd.kafka.json.v2+json' | json_pp

@@ -38,3 +38,4 @@ demo-angular/.firebase/functions/node_modules
 logs
 .log
 .DS_Store
+*.jks

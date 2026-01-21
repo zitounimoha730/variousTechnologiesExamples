@@ -1,0 +1,6 @@
+curl -X POST  \
+http://localhost:8082/consumers/designs-consumer-group/instances/consumer-1/subscription  \
+-H 'Content-Type: application/vnd.kafka.v2+json'   \
+  -d '{
+  "topics": ["designs"]
+}'

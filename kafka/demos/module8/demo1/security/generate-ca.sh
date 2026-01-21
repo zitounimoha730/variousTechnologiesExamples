@@ -5,11 +5,11 @@ CA_CERT_FILE="ca-cert"
 openssl req -new -x509 -keyout $CA_KEY_FILE -out $CA_CERT_FILE -days $VALIDITY_DAYS
 
 #### Example Values ####
-# Passphrase: password
+# Passphrase: pwd1234
 # Country Name: US
 # State or Province: UT
 # City: Utah
 # Organization Name: Pluralsight
-# Organizational Unit Name: Community
+# Organizational Unit Name: PS
 # Common Name: pluralsight.com
-# Email: learner@pluralsight.com
+# Email: test@test.com

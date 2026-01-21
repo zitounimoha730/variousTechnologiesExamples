@@ -1,0 +1,8 @@
+curl -X POST  \
+http://localhost:8082/consumers/designs-consumer-group/   \ 
+-H 'Content-Type: application/vnd.kafka.v2+json'   \
+-d '{
+  "name": "consumer-1",
+  "format": "json",
+  "auto.offset.reset": "earliest"
+}' | json_pp

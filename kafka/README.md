@@ -613,3 +613,88 @@ ksql> SELECT min_temp, max_temp
 |70.0                 |90.0             
 
 ```
+
+## Kafka Administration
+### Generate certifications for components in the cluster : module8/demo1
+* First we need a CA (Certification authority)
+* Zookeeper: 
+  - keyStore: it is a server for krokers
+  - trustStore: it is client for other zookepers
+* Broker:
+  - keyStore: it is server for producers
+  - trustStore: it is client for zookeper and other brokers
+* producer:
+  - trustStore: it is client for brokers
+  - keyStore: no need
+* consumer:
+  - trustStore: it is client for brokers
+  - keyStore: no need
+
+```
+$ cd demos/module8/demo1
+$ cd security
+$ ./generate-ca.sh
+
+# Generate keystore for 3 brokers
+$ ./generate-keystore.sh broker-1
+$ ./generate-keystore.sh broker-2
+$ ./generate-keystore.sh broker-3
+
+# Generate keystore for 3 Zookepers
+$ ./generate-keystore.sh zookeper-1
+$ ./generate-keystore.sh zookeper-2
+$ ./generate-keystore.sh zookeper-3
+
+# Generate Truststore for 3 brockers
+$ ./generate-truststore.sh broker-1
+$ ./generate-truststore.sh broker-2
+$ ./generate-truststore.sh broker-3
+
+# Generate Truststore for 3 zookepers
+$ ./generate-truststore.sh zookeper-1
+$ ./generate-truststore.sh zookeper-2
+$ ./generate-truststore.sh zookeper-3
+```
+
+### Encrypting Zookeper (Offline): module8/demo2
+Can be done in two ways:
+- Online Fashion
+- Offline Fashion
+#### 1. Use keystore & truststore files to secure zookeepers & brokers
+See demos/module8/demo2/docker-compose.yml file
+#### 2. Start Kafka cluster
+```
+$ cd demos/module8/demo2
+$ docker-compose.yml
+$ curl localhost:8082
+{brokers:[1,2,3]}
+```
+#### 3. Create a topic
+```
+$ kafka-topics.bat --create --bootstrap-server 127.0.0.1:9092 --partitions 4 --topic myorders
+```
+
+#### 4. Produce and receive messages
+```
+# Open project using IntelliJ IDE
+# Run Consumer.java file => success receiving from myorders topic
+# Run Producer.java file => Success sending messages to myorders topic
+```
+=> Data are encrypted between :
+- zookepers - zookepers
+- brokers - brokers
+- zookepers - brokers
+
+But not yet encrypted with producers or consumers and the communication until now between producers/consumers and brokers is in plaintext. In next demo we will make it communication in ssl => we change the protocol from PLAINTEXT to SSL
+
+### Encrypt Producers and Consumers : module8/demo3
+#### 1. Generate truststore files for a producer and a consumer
+```
+$ ./generate-truststore.sh producer
+$ ./generate-truststore.sh consumer
+```
+
+#### 2. Run Java Producer and Consumer
+- Open the project with IntelliJ
+- Fix the path and password of jks files
+- Run java classes
