@@ -1,5 +1,4 @@
 # All courses
-* Kafka
 * Demo Angular
 * Demo Spring
 * AWS Labs:
